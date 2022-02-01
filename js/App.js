@@ -1,10 +1,5 @@
-import React, { Component } from 'react';
-import {
-  StyleSheet,
-  View,
-  StatusBar,
-  SafeAreaView
-} from 'react-native';
+import React, {Component} from 'react';
+import {StyleSheet, View, StatusBar, SafeAreaView} from 'react-native';
 import {
   startRecording,
   stopRecording,
@@ -23,7 +18,6 @@ import Logger from './utils/Logger';
 import KeepAwake from 'react-native-keep-awake';
 
 export default class App extends Component {
-
   constructor(props) {
     super(props);
 
@@ -35,16 +29,18 @@ export default class App extends Component {
   }
 
   startRecording() {
-    this.setState({ mode: 'LOADING' });
+    this.setState({mode: 'LOADING'});
     startRecording()
-      .then(() => { this.setState({ mode: 'READY' }); })
+      .then(() => {
+        this.setState({mode: 'READY'});
+      })
       .catch(e => {
-        this.setState({ mode: 'READY' });
-        Logger.addLog(`error: ${e}`)
+        this.setState({mode: 'READY'});
+        Logger.addLog(`error: ${e}`);
       });
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     KeepAwake.activate();
   }
 
@@ -59,42 +55,44 @@ export default class App extends Component {
 
     this.setState({mode: 'LOADING'});
 
-    getLastVideoURL()
-      .then((video) => {
-        return stopRecording()
-          .then(delay(1500))
-          .then(startRecording)
-          .then(() => {
-            this.setState({ mode: 'READY' });
+    stopRecording().then(delay(1000));
+    getLastVideoURL().then(video => {
+      debugger;
+      this.setState({mode: 'READY'});
 
-            TaskManager.scheduleTask(`extracting goal from video ${video}`, () => {
-              return getVideoDuration(video)
-                .then(duration => {
-                  const maxLen = 18;
-                  const twoDecimalsTrunc = (n) => Math.floor(n*100)/100;
-                  const start = twoDecimalsTrunc(duration > maxLen ? duration - maxLen : 0);
+      TaskManager.scheduleTask(`extracting goal from video ${video}`, () => {
+        return getVideoDuration(video)
+          .then(duration => {
+            debugger;
+            const maxLen = 18;
+            const twoDecimalsTrunc = n => Math.floor(n * 100) / 100;
+            const start = twoDecimalsTrunc(
+              duration > maxLen ? duration - maxLen : 0,
+            );
 
-                  return trimVideo(video, start, twoDecimalsTrunc(duration));
-                })
-                .then((url) => deleteFromCache(url))
-                .then(delay(5000))
-                .then(() => deleteVideo(video))
-                .then(delay(5000))
-                .catch(e => {
-                  Logger.addLog(`error: ${e}`);
-                });
-            })
-          });
+            return trimVideo(video, start, twoDecimalsTrunc(duration));
+          })
+          .then(url => deleteFromCache(url))
+          .then(delay(5000))
+          .then(() => deleteVideo(video))
+          .then(delay(5000))
+          .catch(e => {
+            Logger.addLog(`error: ${e}`);
+          })
+          .then(() => startRecording());
       });
+    });
   }
 
   stopRecording() {
-    this.setState({ mode: 'LOADING' });
+    this.setState({mode: 'LOADING'});
     stopRecording()
       .then(() => {
-        this.setState({ mode: 'NOT_STARTED' });
+        this.setState({mode: 'NOT_STARTED'});
       })
-      .catch((e) => { this.setState({ mode: 'ERROR', error: e }); })
+      .catch(e => {
+        this.setState({mode: 'ERROR', error: e});
+      });
   }
 
   renderView() {
@@ -135,7 +133,7 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(13, 23, 40, 1.00)'
+    backgroundColor: 'rgba(13, 23, 40, 1.00)',
   },
   innerView: {
     flexDirection: 'row',
